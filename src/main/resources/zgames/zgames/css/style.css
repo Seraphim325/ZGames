@@ -1,0 +1,12 @@
+.button {
+    -fx-font-weight: 700;
+}
+
+#startMiddleBtn {
+    -fx-margin: 0 200px;
+}
+
+#backBtn {
+    -fx-padding: 10px 30px;
+    -fx-font-size: 14px;
+}
