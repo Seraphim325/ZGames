@@ -9,9 +9,9 @@
    <children>
       <VBox alignment="CENTER" prefHeight="600.0" prefWidth="800.0">
          <children>
-            <HBox fx:id="parts" alignment="CENTER_LEFT" prefHeight="200.0" prefWidth="800.0" />
+            <HBox fx:id="seasons" alignment="CENTER" prefHeight="546.0" prefWidth="800.0" />
          </children>
       </VBox>
-      <Button layoutY="1.0" mnemonicParsing="false" onAction="#listPage" text="Назад" />
+      <Button layoutY="1.0" mnemonicParsing="false" onAction="#innerListPage" text="Назад" />
    </children>
 </AnchorPane>

@@ -14,6 +14,8 @@ import javafx.stage.Stage;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.*;
 
 public class Controller {
@@ -30,20 +32,37 @@ public class Controller {
     private static Map<Object, File> links;
     private static int currentVideoListPage = 0;
 
-
+    @FXML
     public void startPage(ActionEvent event) throws IOException {
         initStageAndScene(event, "fxml/start.fxml");
     }
 
-    public void listPage(ActionEvent event) throws IOException {
+    @FXML
+    public void listPage(ActionEvent event) throws IOException,
+            InvocationTargetException, NoSuchMethodException, IllegalAccessException {
         initStageAndScene(event, "fxml/list.fxml");
         init(new File("src/main/resources/zgames/zgames/video"));
-        setVideoList(videoList.get(currentVideoListPage));
+        setVideoList(videoList.get(currentVideoListPage), "#videoList");
+    }
+
+    public void innerListPage(ActionEvent event, File file) throws IOException,
+            NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        initStageAndScene(event, "fxml/innerList.fxml");
+        innerVideoList = createVideoListHBox(List.of(Objects.requireNonNull(file.listFiles())),
+                Controller.class
+                        .getDeclaredMethod("getVideosPageAction", File.class));
+        setVideoList(innerVideoList, "#parts");
     }
 
     @FXML
-    public void innerListPage(ActionEvent event, File file) throws IOException {
+    public void innerListPage(ActionEvent event) throws IOException {
         initStageAndScene(event, "fxml/innerList.fxml");
+        setVideoList(innerVideoList, "#parts");
+    }
+
+    @FXML
+    public void videosPage(ActionEvent event, File file) throws IOException {
+        initStageAndScene(event, "fxml/videos.fxml");
     }
 
     public void btnBackward(ActionEvent event) throws IOException {
@@ -61,24 +80,28 @@ public class Controller {
         Parent root = loader.load();
         Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
         scene = new Scene(root);
-        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("css/style.css")).toExternalForm());
+        scene.getStylesheets().add(Objects.requireNonNull(getClass()
+                .getResource("css/style.css")).toExternalForm());
         stage.setScene(scene);
         stage.setResizable(false);
         stage.show();
     }
 
 
-    private void init(File file) throws IOException {
+    private void init(File file) throws IOException,
+            InvocationTargetException, NoSuchMethodException, IllegalAccessException {
         if (videoList == null) {
-            videoList = new ArrayList<>();
-            links = new HashMap<>();
             initVideoList(file);
         }
         initButtons();
     }
 
-    private void initVideoList(File file) throws IOException {
+    private void initVideoList(File file) throws IOException,
+            NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        videoList = new ArrayList<>();
+        links = new HashMap<>();
         List<File> files;
+
         int len = Objects.requireNonNull(file.listFiles()).length;
         int hboxNum = len % 3 == 0 ? len / 3 : len / 3 + 1;
         for (int i = 1; i <= hboxNum; i++) {
@@ -87,15 +110,17 @@ public class Controller {
             } else {
                 files = Arrays.stream(Objects.requireNonNull(file.listFiles())).toList().subList(i * 3 - 3, i * 3);
             }
-            HBox currentPage = createVideoListHBox(files, getInnerListPageAction(file));
+            HBox currentPage = createVideoListHBox(files, Controller.class
+                    .getDeclaredMethod("getInnerListPageAction", File.class));
             videoList.add(currentPage);
         }
     }
 
-    private HBox createVideoListHBox(List<File> files, EventHandler<ActionEvent> action) throws IOException {
+    private HBox createVideoListHBox(List<File> files, Method method) throws IOException,
+            InvocationTargetException, IllegalAccessException {
         HBox list = new HBox();
         for (int i = 0; i < files.size(); i++) {
-            Button button = createButton(files.get(i), action);
+            Button button = createButton(files.get(i), method);
             switch (i) {
                 case 0 -> HBox.setMargin(button, new Insets(0, 0, 0, 10));
                 case 1 -> HBox.setMargin(button, new Insets(0, 0, 0, 165));
@@ -107,27 +132,8 @@ public class Controller {
         return list;
     }
 
-    private Button createButton(File file, EventHandler<ActionEvent> action) throws IOException {
-        Button button = new Button();
-        button.setPrefWidth(150);
-        button.setPrefHeight(150);
-        button.setText(file.getName());
-        button.setOnAction(action);
-        return button;
-    }
-
-    private EventHandler<ActionEvent> getInnerListPageAction(File file) {
-        return event -> {
-            try {
-                innerListPage(event, file);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        };
-    }
-
-    private void setVideoList(HBox page) {
-        HBox fxmlId = (HBox) scene.lookup("#videoList");
+    private void setVideoList(HBox page, String id) {
+        HBox fxmlId = (HBox) scene.lookup(id);
         fxmlId.getChildren().clear();
         fxmlId.getChildren().add(page);
     }
@@ -135,10 +141,21 @@ public class Controller {
     private void changeVideoList() {
         disableButtons(currentVideoListPage == 0,
                 currentVideoListPage == videoList.size() - 1);
-        setVideoList(videoList.get(currentVideoListPage));
+        setVideoList(videoList.get(currentVideoListPage), "#videoList");
     }
 
-    private void initButtons() throws IOException {
+    private Button createButton(File file, Method method) throws
+            InvocationTargetException, IllegalAccessException {
+        Button button = new Button();
+        button.setPrefWidth(150);
+        button.setPrefHeight(150);
+        button.setText(file.getName());
+        EventHandler<ActionEvent> action = (EventHandler<ActionEvent>) method.invoke(this, file);
+        button.setOnAction(action);
+        return button;
+    }
+
+    private void initButtons() {
         btnBackward = (Button) scene.lookup("#btnBackward");
         btnForward = (Button) scene.lookup("#btnForward");
         disableButtons(currentVideoListPage == 0, currentVideoListPage == videoList.size() - 1);
@@ -148,5 +165,25 @@ public class Controller {
         this.btnBackward.setDisable(btnBackward);
         this.btnForward.setDisable(btnForward);
 
+    }
+    private EventHandler<ActionEvent> getInnerListPageAction(File file) {
+        return event -> {
+            try {
+                innerListPage(event, file);
+            } catch (IOException | InvocationTargetException
+                     | NoSuchMethodException | IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        };
+    }
+
+    private EventHandler<ActionEvent> getVideosPageAction(File file) {
+        return event -> {
+            try {
+                videosPage(event, file);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        };
     }
 }
