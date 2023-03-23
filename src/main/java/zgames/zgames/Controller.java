@@ -12,6 +12,10 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import javafx.scene.media.MediaView;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 import java.io.File;
@@ -35,6 +39,9 @@ public class Controller {
     private static HBox innerList;
     @FXML
     private static ArrayList<VBox> videoList;
+    @FXML
+    private static MediaView mediaView;
+    private static MediaPlayer mediaPlayer;
     private static Scene scene;
     private static int currentListPage = 0;
     private static int currentVideoListPage = 0;
@@ -82,12 +89,14 @@ public class Controller {
     @FXML
     public void videoListPage(ActionEvent event) throws IOException,
             InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+        interruptMedia();
         videoListPage(event, new File(""));
     }
 
     @FXML
-    public void videoPage(ActionEvent event) throws IOException {
+    public void videoPage(ActionEvent event, File file) throws IOException {
         initStageAndScene(event, "fxml/video.fxml");
+        initVideoPage(file);
     }
 
     public void btnBackward(ActionEvent event) {
@@ -108,6 +117,14 @@ public class Controller {
     public void btnForwardVideoPage(ActionEvent event) {
         currentVideoListPage++;
         changeVideoList();
+    }
+
+    public void play(ActionEvent event) {
+        mediaPlayer.play();
+    }
+
+    public void pause(ActionEvent event) {
+        mediaPlayer.pause();
     }
 
     private void initStageAndScene(ActionEvent event, String file) throws IOException {
@@ -143,6 +160,20 @@ public class Controller {
             initVideoList(file);
         }
         initButtonsVideoPage();
+    }
+
+    private void initVideoPage(File file) {
+        Media media = new Media(file.toURI().toString());
+        mediaPlayer = new MediaPlayer(media);
+        mediaPlayer.setAutoPlay(true);
+        mediaView = (MediaView) scene.lookup("#mediaView");
+        mediaView.setMediaPlayer(mediaPlayer);
+    }
+
+    private void interruptMedia() {
+        mediaPlayer.pause();
+        mediaView = null;
+        mediaPlayer = null;
     }
 
     private void initList(File file) throws IOException,
@@ -310,7 +341,7 @@ public class Controller {
     private EventHandler<ActionEvent> getVideoPageAction(File file) {
         return event -> {
             try {
-                videoPage(event);
+                videoPage(event, file);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

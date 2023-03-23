@@ -1,11 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.media.MediaView?>
 
-
-<AnchorPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="zgames.zgames.Controller">
+<AnchorPane prefHeight="385.0" prefWidth="640.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="zgames.zgames.Controller">
    <children>
-      <Button layoutY="1.0" mnemonicParsing="false" onAction="#videoListPage" text="Назад" />
+      <VBox fx:id="videoContainer" prefHeight="385.0" prefWidth="640.0">
+         <children>
+            <MediaView fx:id="mediaView" fitHeight="360.0" fitWidth="640.0" />
+            <HBox alignment="CENTER_LEFT" prefHeight="70.0" prefWidth="640.0">
+               <children>
+                  <Button fx:id="backVideo" mnemonicParsing="false" onAction="#videoListPage" text="Назад" />
+                  <Button mnemonicParsing="false" onAction="#play" text="Play">
+                     <HBox.margin>
+                        <Insets left="215.0" right="25.0" />
+                     </HBox.margin>
+                  </Button>
+                  <Button mnemonicParsing="false" onAction="#pause" text="Pause" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
    </children>
 </AnchorPane>

@@ -1,5 +1,6 @@
 module zgames.zgames {
     requires javafx.controls;
+    requires javafx.media;
     requires javafx.fxml;
 
 

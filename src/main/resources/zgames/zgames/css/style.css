@@ -10,3 +10,7 @@
     -fx-padding: 10px 30px;
     -fx-font-size: 14px;
 }
+
+#videoContainer {
+    -fx-background-color: black;
+}
