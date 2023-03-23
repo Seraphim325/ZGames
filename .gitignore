@@ -6,8 +6,6 @@ target/
 
 
 **/video/
-mvnw
-mvnw.cmd
 
 ### IntelliJ IDEA ###
 .idea/modules.xml
